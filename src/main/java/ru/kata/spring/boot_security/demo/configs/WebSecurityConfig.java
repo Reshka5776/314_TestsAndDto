@@ -14,6 +14,10 @@ import ru.kata.spring.boot_security.demo.service.UserDetailsServiceImp;
 
 @Configuration
 @EnableWebSecurity
+@EnableGlobalMethodSecurity(
+        prePostEnabled = true,
+        securedEnabled = true,
+        jsr250Enabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final SuccessUserHandler successUserHandler;
@@ -32,9 +36,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .authorizeRequests()
-                .antMatchers("/authenticated/**").authenticated()
+                .antMatchers("/user/**","/admin/loggedUser").hasAnyRole("ADMIN", "USER")
                 .antMatchers("/admin/**").hasRole("ADMIN")
-                .antMatchers("/user/**").hasAnyRole("ADMIN", "USER")
                 .and()
                 .httpBasic()
                 .and()
@@ -43,7 +46,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .loginProcessingUrl("/hellologin")
                 .and()
                 .csrf().disable()
-                .logout().logoutSuccessUrl("/");
+                .logout()
+                .logoutUrl("/logout")
+                .logoutSuccessUrl("/");
     }
 
     @Bean

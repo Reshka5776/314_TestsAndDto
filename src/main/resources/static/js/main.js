@@ -2,10 +2,10 @@
  *
  */
 $(async function () {
-    getNavbarInfo();
+    await getNavbarInfo();
     getBothFunctionsModal();
-})
 
+})
 
 const fetchingService = {
     head: {
@@ -14,10 +14,8 @@ const fetchingService = {
         'Referer': null
     },
 
-
     getAllUsers: async () =>
         await fetch('admin/users'),
-
 
     getAllRoles: async () =>
         await fetch('admin/roles'),
@@ -67,25 +65,37 @@ async function getNavbarInfo() {
                 .append(`${data.email} with roles: ${s}`)
 
             if(s.includes("ROLE_ADMIN")){
-                getAllUserTable();
-                getAddNewUserForm();
+                $(async function() {
+                    await getAllRolesListForAll();
+                    getAllUserTable();
+                    getAddNewUserForm();
+                })
+
                 $('#v-pills-home-tab').tab('show')
             } else {
                 $('#v-pills-profile-tab').tab('show')
             }
 
-            getLoggedUserTable(data.id)
+            getLoggedUserTable(data)
         })
 }
 
 
+async function getAllRolesListForAll() {
+    await fetchingService.getAllRoles()
+        .then(res => res.json())
+        .then(roleList => {
+            window.allRoles = roleList;
+        console.log("RolesForAllFunc - "  + allRoles)
+        })
+}
+
+
+
 //юзер пилл
-async function getLoggedUserTable(princeId) {
+async function getLoggedUserTable(user) {
     let tableLogged = $('#loggedUserTable tbody');
     tableLogged.empty();
-    let resp = await fetchingService.getSelectedUser(princeId)
-    let data = resp.json();
-    data.then(user => {
 
                 let s = ""
                 if (user.roles != null) {
@@ -107,14 +117,13 @@ async function getLoggedUserTable(princeId) {
                         </tr>
                 )`;
                     tableLogged.append(tableLoggedContent);
-            })
 }
 
 
 async function getAllUserTable() {
     let tableAllUsers = $('#allUsersTable tbody');
     tableAllUsers.empty();
-
+    console.log("Window add1 " + allRoles)
     await fetchingService.getAllUsers()
         .then(res => res.json())
         .then(userList => {
@@ -161,15 +170,9 @@ async function getAllUserTable() {
 async function getAddNewUserForm() {
     let form = $(`#newUserForm`)
     form.show();
-    let userRoles = await fetchingService.getAllRoles();
-    console.log("before json" + userRoles)
-    let roles = userRoles.json();
-    console.log("after json" + roles)
-
-    roles.then(roles => {
         let targetForm = $('#newUserRoleBox');
-        let optionLine = `<select class="form-control" name="userRoles" id="roleSelectBox" multiple size="${roles.length}">`;
-        roles.forEach(role => {
+        let optionLine = `<select class="form-control" name="userRoles" id="roleSelectBox" multiple size="${allRoles.length}">`;
+        allRoles.forEach(role => {
             optionLine = optionLine + `<option value="${role.name}">${role.name}</option>`;
             console.log("role:" + role)
             console.log("role id:" + role.id)
@@ -177,7 +180,6 @@ async function getAddNewUserForm() {
         })
         optionLine = optionLine + `</select>`
         targetForm.append(optionLine);
-    })
 
 
     $('#addUserToDBButt').click(async () =>  {
@@ -215,7 +217,7 @@ async function getAddNewUserForm() {
 
 // модальное окно - откр
 async function getBothFunctionsModal() {
-    console.log('aaaa')
+    console.log('bothfunc')
     $('#bothModalsInOne').modal({
         keyboard: true,
         backdrop: "static",
@@ -242,12 +244,9 @@ async function getBothFunctionsModal() {
 
 // Эдит форм инсерт
 async function editUser(modal, id) {
-    console.log('bbbb')
+    console.log("Window edit " + allRoles)
     let resp = await fetchingService.getSelectedUser(id);
     let user = resp.json();
-
-    let respRoles = await fetchingService.getAllRoles();
-    let roles = respRoles.json();
 
     modal.find('.modal-title').html('Edit user');
 
@@ -293,15 +292,13 @@ async function editUser(modal, id) {
         `;
 
         modal.find('.modal-body').append(editUserFormContent);
-        roles.then(roles => {
             let targetForm = $('#roleBoxEdit');
-            let optionLine = `<select class="form-control" name="userRoles" id="roleSelectBoxEdit" multiple size="${roles.length}">`;
-            roles.forEach(role => {
+            let optionLine = `<select class="form-control" name="userRoles" id="roleSelectBoxEdit" multiple size="${allRoles}">`;
+            allRoles.forEach(role => {
                 optionLine = optionLine + `<option value="${role.name}">${role.name}</option>`;
             })
             optionLine = optionLine + `</select>`
             targetForm.append(optionLine);
-        })
     })
 
     $("#editButton").on('click', async () => {
@@ -335,11 +332,9 @@ async function editUser(modal, id) {
 
 // делит форм инсерт
 async function deleteUser(modal, id) {
-    console.log('dddd')
+    console.log('delete modal')
     let resp = await fetchingService.getSelectedUser(id);
     let user = resp.json();
-    let respRoles = await fetchingService.getAllRoles();
-    let roles = respRoles.json();
 
     modal.find('.modal-title').html('Delete user');
 
@@ -378,16 +373,13 @@ async function deleteUser(modal, id) {
             </form>
         `;
         modal.find('.modal-body').append(deleteUserFormContent);
-
-        roles.then(roles => {
             let targetForm = $('#roleBoxDelete');
-            let optionLine = `<select class="form-control" readonly="readonly" name="userRoles" id="roleSelectBoxDelete" multiple size="${roles.length}">`;
-            roles.forEach(role => {
+            let optionLine = `<select class="form-control"  id="roleSelectBoxDelete" readonly="readonly" name="userRoles" multiple size="${allRoles.length}">`;
+            allRoles.forEach(role => {
                 optionLine = optionLine + `<option value="${role.name}">${role.name}</option>`;
             })
             optionLine = optionLine + `</select>`
             targetForm.append(optionLine);
-        })
     })
 
     $("#deleteButton").on('click', async () => {
