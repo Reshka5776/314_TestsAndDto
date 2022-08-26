@@ -4,8 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import ru.kata.spring.boot_security.demo.models.Role;
 import ru.kata.spring.boot_security.demo.models.User;
@@ -17,7 +15,7 @@ import java.security.Principal;
 import java.util.List;
 
 @Secured("ROLE_ADMIN")
-@RestController
+@RestController("/api")
 public class AdminController {
     private UserDetailsServiceImp userDetailsServiceImp;
     private UserService userService;
@@ -55,7 +53,7 @@ public class AdminController {
     public ResponseEntity<List<User>> getUserList() {
 
 
-        List<User> userList = userService.getDemandedUsers();
+        List<User> userList = userService.getUsers();
         return new ResponseEntity<>(userList, HttpStatus.OK);
     }
 

@@ -60,7 +60,7 @@ public class UserServiceImp implements UserService {
     }
 
     @Override
-    public List<User> getDemandedUsers() {
+    public List<User> getUsers() {
         return userDao.getDemandedUsers();
     }
 
